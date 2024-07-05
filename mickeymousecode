@@ -1,0 +1,48 @@
+import json
+import requests
+
+def get_answer_from_vectara(api_key, corpus_key, question):
+    """Retrieves an answer from a Vectara corpus.
+
+    Args:
+      api_key: zut__tziblIC6PVIrjcSAw-w6IKZuorzIaUjQEK6JA
+      corpus_key: 	
+GENAItester
+      question: What is the future of cli
+      mate change?
+
+    Returns:
+      The answer from Vectara, or an error message if no answer is found.
+    """
+
+    url = "api.vectara.io/v2/search/{GENAItester}/query"
+    
+    headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'x-api-key': api_key
+    }
+
+    payload = json.dumps({"query": question})
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+
+    if response.status_code == 200:
+      data = response.json()
+      if data['results']:
+        return data['results'][0]['document']['data']
+      else:
+        return "No answer found."
+    else:
+      return f"Error: {response.status_code}"
+
+if __name__ == "__main__":
+    api_key = input("zqt__tzibg0M1Xp-a2P_nzBdZiK_WFfrq8_3IRytaQ");
+    corpus_key = "GENAItester"  # Replace with your actual corpus key
+
+    while True:
+      question = input("What is the future of climate change?")
+
+      answer = get_answer_from_vectara(api_key, corpus_key, question)
+
+      print(f"Answer: {answer}")
