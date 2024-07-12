@@ -1,0 +1,3 @@
+import vectara
+
+vectara()
