@@ -1,7 +1,7 @@
 import requests
 import json
 
-def vectara(api_key, files):
+def vectara(api_key, sent_files):
     url = "https://api.vectara.io/v2/corpora/new/upload_file"
 
     payload={}
@@ -9,11 +9,11 @@ def vectara(api_key, files):
     # don't change the first part that says file for the below
     # can only put one file at a time
     files = [
-      ('file', ('vectara_handbook', open('ADD FILE HERE', 'rb'), 'application/octet-stream'))
+      ('file', ('vectara_handbook', open(sent_files[0], 'rb'), 'application/octet-stream'))
     ]
     headers = {
       'Accept': 'application/json',
-      'x-api-key': 'zut_63JHduOA7XZXlewPHuQOD7YuamOctBXBaAeuQA'
+      'x-api-key': api_key
     }
 
     response_upload = requests.request("POST", url, headers=headers, data=payload, files=files)
