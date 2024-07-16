@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./App.css";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -19,8 +19,6 @@ const ChatItem = ({ name, lastMessage, time }) => (
       <p className="chat-last-message">{lastMessage}</p>
     </div>
     <div className="chat-time">{time}</div>
-      {/* chat metadata stored for each conversation */}
-
   </div>
 );
 
@@ -30,34 +28,48 @@ const ChatList = () => (
     <ChatItem name="Bee Population Decline" lastMessage="Due to insecticide..." time="2:14 PM"/>
     <ChatItem name="Global Temperatures" lastMessage="Over the last 4 decades..." time="10:25 AM"/>
     <ChatItem name="Cosmic Evolution" lastMessage="Some 15 billion years ago..." time="9:34 PM"/>
-      {/* placeholder chats, all pprevious chats should be stored in this panel */}
-
   </div>
 );
 
 // Chat window component
-const ChatWindow = () => (
-  <div className="chat-window">
-    <div className="chat-header">
-      <h2>EcoMind AI Chatbot</h2>
-    </div>
-    <div className="chat-messages">
-      <div className="message you">
-        <p>***This Is The User Query***</p>
-      </div>
-      <div className="message response">
-        <p>***Vectara Response***</p>
-      </div>
-      {/* placeholder messages; api integration to db & vectara here */}
-    </div>
-    <div className="chat-input">
-      <input type="text" placeholder="Ask a question here" />
-      <button className="send-button"><i className="fa fa-paper-plane"></i></button>
-      {/* store input and call api after button click */}
+const ChatWindow = () => {
+  const [query, setQuery] = useState('');
+  const [response, setResponse] = useState('');
 
+  // Function to handle sending query to Vectara and getting the response
+  const handleSendQuery = async () => {
+    // Placeholder for the keyword extraction
+    // const keywords = extractKeywords(query); // This function needs to be defined or imported
+
+    // API call to search the library database with keywords
+    // const searchResults = await searchLibraryDatabase(keywords); // This function needs to be defined
+
+    // Placeholder for the Vectara query
+    // const vectaraResponse = await vectaraQuery('your-api-key', query);
+    // setResponse(vectaraResponse);
+  };
+
+  return (
+    <div className="chat-window">
+      <div className="chat-header">
+        <h2>EcoMind AI Chatbot</h2>
+      </div>
+      <div className="chat-messages">
+        {/* Display user query and Vectara's response */}
+        <div className="message you">
+          <p>{query}</p>
+        </div>
+        <div className="message response">
+          <p>{response}</p>
+        </div>
+      </div>
+      <div className="chat-input">
+        <input type="text" value={query} onChange={e => setQuery(e.target.value)} placeholder="Ask a question here" />
+        <button className="send-button" onClick={handleSendQuery}><i className="fa fa-paper-plane"></i></button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Main landing page component
 const LandingPage = () => (
@@ -67,7 +79,6 @@ const LandingPage = () => (
       <div className="header">
         <h2>My Chats</h2>
         <button className="add-chat">+</button>
-        {/* need to implement logic for new chat */}
       </div>
       <div className="search-bar">
         <input type="text" placeholder="Search..." />
@@ -79,4 +90,3 @@ const LandingPage = () => (
 );
 
 export default LandingPage;
-
