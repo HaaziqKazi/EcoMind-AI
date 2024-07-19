@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "./App.css";
 import '@fortawesome/fontawesome-free/css/all.min.css';
-// import rake from 'rake-js'
 
 const extractKeywords = text => {
   const stopwords = [
@@ -614,20 +613,134 @@ const ChatList = () => (
 const ChatWindow = () => {
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState('');
+  const [error, setError] = useState('');
 
-  // Function to handle sending query to Vectara and getting the response
+  const apiKey = '90493596c66adc955c2f9cb35812dc83';  
+  const institutionToken = '53f0634cd8eae7422fb30357bdb99f86';  
+
+  // Function to handle sending query to Science Direct and getting the response
   const handleSendQuery = async () => {
-    // Placeholder for the keyword extraction
-    const keywords = extractKeywords(query); // This function needs to be defined or imported
-    // const keywords =  rake(query, { language: 'english' })
-    // API call to search the library database with keywords
-    // const searchResults = await searchLibraryDatabase(keywords); // This function needs to be defined
+    const keywords = extractKeywords(query); // Assuming `extractKeywords` is defined
+    const searchQuery = keywords.join(' ');
 
-    // Placeholder for the Vectara query
-    // const vectaraResponse = await vectaraQuery('your-api-key', query);
-    // setResponse(vectaraResponse);
+    const searchUrl = 'https://api.elsevier.com/content/search/sciencedirect';
+    const searchHeaders = {
+        'Accept': 'application/json',
+        'X-ELS-APIKey': apiKey,
+        'X-ELS-Insttoken': institutionToken
+    };
+    const searchParams = new URLSearchParams({
+        query: searchQuery,
+        count: 1  // Fetching only one article for simplicity
+    });
 
+    try {
+        const searchResponse = await fetch(`${searchUrl}?${searchParams}`, { headers: searchHeaders });
+        const searchData = await searchResponse.json();
+        if (!searchResponse.ok) throw new Error(`Failed to fetch articles: ${searchResponse.status}`);
+
+        const entry = searchData['search-results'].entry[0];
+        const doi = entry['dc:identifier'].split('DOI:')[1];
+        const title = entry['dc:title'];  // Extract the title of the article
+
+        const pdfUrl = `https://api.elsevier.com/content/article/doi/${doi}?httpAccept=application/pdf`;
+        const pdfHeaders = {
+            'Accept': 'application/pdf',
+            'X-ELS-APIKey': apiKey,
+            'X-ELS-Insttoken': institutionToken
+        };
+
+        const pdfResponse = await fetch(pdfUrl, { headers: pdfHeaders });
+        if (!pdfResponse.ok) throw new Error(`Failed to fetch PDF: ${pdfResponse.status}`);
+
+        const pdfBlob = await pdfResponse.blob();
+        console.log("PDF fetched successfully, ready to upload.");
+
+        // Call the function to upload the PDF, using the article title as the file name
+        await receivePdfBlob(pdfBlob, title);  // Pass the title for use as the file name
+        await queryVectara(searchQuery);
+        // setResponse();
+    } catch (error) {
+        console.error('Error:', error);
+        setError(`Error: ${error.message}`);
+        setResponse('');
+    }
+};
+
+// This function uploads the PDF blob to Vectara, using the article title as the filename
+async function receivePdfBlob(pdfBlob, filename) {
+    const formData = new FormData();
+    // Sanitize filename to ensure it's safe for use in file systems and URLs
+    const safeFilename = filename.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
+    formData.append('file', pdfBlob, safeFilename);
+    const response = await fetch('https://api.vectara.io/v2/corpora/new/upload_file', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'x-api-key': 'zut_63JHduOA7XZXlewPHuQOD7YuamOctBXBaAeuQA'
+        },
+        body: formData
+    });
+    if (!response.ok) {
+        console.error('Upload failed', response.statusText);
+    } else {
+        const responseData = await response.json();
+        console.log('Upload successful', responseData);
+    }
+}
+
+// Assuming this function is part of a React component
+const queryVectara = async (queryText) => {
+  let data = JSON.stringify({
+    "query": queryText,
+    "search": {
+      "corpora": [
+        {
+          "custom_dimensions": {},
+          "lexical_interpolation": 0,
+          "semantics": "default",
+          "corpus_key": "new"
+        }
+      ],
+    },
+    "generation": {
+      "response_language": "auto",
+      "citations": {
+        "style": "none",
+        "url_pattern": "https://vectara.com/documents/{doc.id}",
+        "text_pattern": "{doc.title}"
+      },
+      "enable_factual_consistency_score": true
+    },
+    "stream_response": false
+  });
+
+  let config = {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'x-api-key': 'zut_63JHduOA7XZXlewPHuQOD7YuamOctBXBaAeuQA'
+    },
+    body: data
   };
+
+  try {
+    const response = await fetch('https://api.vectara.io/v2/query', config);
+    if (!response.ok) {
+      throw new Error(`Vectara API responded with ${response.status}`);
+    }
+    const responseData = await response.json();
+    console.log(JSON.stringify(responseData)); // Optional: Log to console for debugging
+    setResponse(JSON.stringify(responseData, null, 2)); // Display formatted JSON response in UI
+  } catch (error) {
+    console.error('Failed to query Vectara:', error);
+    setResponse(`Error querying Vectara: ${error.message}`);
+  }
+};
+
+
+
 
   return (
     <div className="chat-window">
@@ -635,7 +748,6 @@ const ChatWindow = () => {
         <h2>EcoMind AI Chatbot</h2>
       </div>
       <div className="chat-messages">
-        {/* Display user query and Vectara's response */}
         <div className="message you">
           <p>{query}</p>
         </div>
@@ -647,9 +759,11 @@ const ChatWindow = () => {
         <input type="text" value={query} onChange={e => setQuery(e.target.value)} placeholder="Ask a question here" />
         <button className="send-button" onClick={handleSendQuery}><i className="fa fa-paper-plane"></i></button>
       </div>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
 };
+
 
 // Main landing page component
 const LandingPage = () => (
