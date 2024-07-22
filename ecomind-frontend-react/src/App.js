@@ -692,51 +692,68 @@ async function receivePdfBlob(pdfBlob, filename) {
 // Assuming this function is part of a React component
 const queryVectara = async (queryText) => {
   let data = JSON.stringify({
-    "query": queryText,
-    "search": {
-      "corpora": [
-        {
-          "custom_dimensions": {},
-          "lexical_interpolation": 0,
-          "semantics": "default",
-          "corpus_key": "new"
-        }
-      ],
-    },
-    "generation": {
-      "response_language": "auto",
-      "citations": {
-        "style": "none",
-        "url_pattern": "https://vectara.com/documents/{doc.id}",
-        "text_pattern": "{doc.title}"
+      "query": queryText,
+      "search": {
+          "corpora": [
+              {
+                  "custom_dimensions": {},
+                  "lexical_interpolation": 0,
+                  "semantics": "default",
+                  "corpus_key": "new"
+              }
+          ],
       },
-      "enable_factual_consistency_score": true
-    },
-    "stream_response": false
+      "generation": {
+          "response_language": "auto",
+          "citations": {
+              "style": "none",
+              "url_pattern": "https://vectara.com/documents/{doc.id}",
+              "text_pattern": "{doc.title}"
+          },
+          "enable_factual_consistency_score": true
+      },
+      "stream_response": false
   });
 
   let config = {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'x-api-key': 'zut_63JHduOA7XZXlewPHuQOD7YuamOctBXBaAeuQA'
-    },
-    body: data
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'x-api-key': 'zut_63JHduOA7XZXlewPHuQOD7YuamOctBXBaAeuQA'
+      },
+      body: data
   };
 
   try {
-    const response = await fetch('https://api.vectara.io/v2/query', config);
-    if (!response.ok) {
-      throw new Error(`Vectara API responded with ${response.status}`);
-    }
-    const responseData = await response.json();
-    console.log(JSON.stringify(responseData)); // Optional: Log to console for debugging
-    setResponse(JSON.stringify(responseData, null, 2)); // Display formatted JSON response in UI
+      const response = await fetch('https://api.vectara.io/v2/query', config);
+      if (!response.ok) {
+          throw new Error(`Vectara API responded with ${response.status}`);
+      }
+      const responseData = await response.json();
+      // Format the response data for readability
+      const formattedResponse = formatVectaraResponse(responseData);
+      setResponse(formattedResponse); // Display formatted response in UI
   } catch (error) {
-    console.error('Failed to query Vectara:', error);
-    setResponse(`Error querying Vectara: ${error.message}`);
+      console.error('Failed to query Vectara:', error);
+      setResponse(`Error querying Vectara: ${error.message}`);
   }
+};
+
+// Function to format the response into a readable format
+const formatVectaraResponse = (responseData) => {
+  let formattedResponse = `\n${responseData.summary}\n\n\n`;
+
+  // responseData.search_results.forEach((result, index) => {
+  //     formattedResponse += `Result ${index + 1}:\n`;
+  //     formattedResponse += `Text: ${result.text}\n`;
+  //     formattedResponse += `Score: ${result.score.toFixed(3)}\n`;
+  //     formattedResponse += `Document Title: ${result.document_metadata.title}\n`;
+  //     formattedResponse += `Document ID: ${result.document_id}\n`;
+  //     formattedResponse += `Page: ${result.part_metadata.page}, Section: ${result.part_metadata.section}\n\n`;
+  // });
+
+  return formattedResponse;
 };
 
 
