@@ -34,10 +34,9 @@ def search_science_direct(query):
     # Check if the request was successful
     if response.status_code == 200:
         data = response.json()
-        titles = [entry['dc:title'] for entry in data['search-results']['entry']]
-        # Extract DOIs from the results
-        dois = [entry['prism:doi'] for entry in data['search-results']['entry'] if 'prism:doi' in entry]
-        return dois
+        # Extract titles and DOIs from the results
+        results = [(entry['dc:title'], entry['prism:doi']) for entry in data['search-results']['entry'] if 'prism:doi' in entry]
+        return results
     else:
         print(f"Error: {response.status_code} - {response.reason}")
         return None
@@ -69,17 +68,18 @@ def get_article_pdf(doi):
 
 def main():
     query = 'impact of climate change'
-    dois = search_science_direct(query)
-    if dois:
+    results = search_science_direct(query)
+    if results:
         print("DOIs found:")
-        for doi in dois:
-            print(doi)
+        for title, doi in results:
+            print(f"Title: {title}, DOI: {doi}")
             pdf_blob = get_article_pdf(doi)
             if pdf_blob:
                 # Save the PDF blob to a file (for testing purposes)
-                with open(f"{doi.replace('/', '_')}.pdf", "wb") as pdf_file:
+                filename = f"{doi.replace('/', '_')}.pdf"
+                with open(filename, "wb") as pdf_file:
                     pdf_file.write(pdf_blob)
-                print(f"PDF for DOI {doi} has been saved.")
+                print(f"PDF for '{title}' has been saved as {filename}.")
             else:
                 print(f"Could not retrieve PDF for DOI {doi}.")
     else:
