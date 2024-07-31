@@ -1,5 +1,7 @@
 import vectara
+import keyword_extraction
+import extract_articles
 
-query = input('what is your query')
 
-vectara()
+
+vectara.vectara_upload()
