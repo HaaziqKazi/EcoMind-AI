@@ -1,3 +1,4 @@
-import vectara
+print('hello world')
 
-vectara.vectara_upload()
+
+# todo: create requirements.txt file
