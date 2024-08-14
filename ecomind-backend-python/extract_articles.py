@@ -10,7 +10,7 @@ INST_TOKEN = '53f0634cd8eae7422fb30357bdb99f86'
 BASE_URL = 'https://api.elsevier.com/content/search/sciencedirect'
 
 
-def search_science_direct(query):
+def search_science_direct(query: str):
 
     keywords = keyword_extraction.extract_keywords(query)
     joined_keywords = ' '.join(keyword[1] for keyword in keywords)
@@ -42,7 +42,7 @@ def search_science_direct(query):
         return None
 
 
-def get_article_pdf(doi):
+def get_article_pdf(doi: str):
     # Base URL for fetching the full-text article
     full_text_url = f'https://api.elsevier.com/content/article/doi/{doi}'
 
